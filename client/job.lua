@@ -292,6 +292,11 @@ RegisterNUICallback('closeFingerprint', function()
 end)
 
 --Events
+RegisterNetEvent('qb-policejob:OpenPlayerStash', function()
+    TriggerServerEvent("inventory:server:OpenInventory", "stash", "policestash_"..QBCore.Functions.GetPlayerData().citizenid)
+    TriggerEvent("inventory:client:SetCurrentStash", "policestash_"..QBCore.Functions.GetPlayerData().citizenid)
+end)
+
 RegisterNetEvent('police:client:showFingerprint', function(playerId)
     openFingerprintUI()
     FingerPrintSessionId = playerId
@@ -490,6 +495,61 @@ RegisterNetEvent('qb-police:client:spawnHelicopter', function(k)
 end)
 
 -- Threads
+if Config.UseTarget then
+    CreateThread(function()
+        -- Personal stash
+        for k, v in pairs(Config.Locations["stash"]) do
+            exports['qb-target']:AddBoxZone("OpenStash_"..k, vector3(v.x, v.y, v.z), 1.5, 1.5, {
+                name = "OpenStash_"..k,
+                heading = 280,
+                debugPoly = false,
+                minZ = v.z - 1,
+                maxZ = v.z + 1,
+            }, {
+                options = {
+                    {
+                        type = "client",
+                        event = "qb-policejob:OpenPlayerStash",
+                        icon = "fas fa-sign-in-alt",
+                        label = "Open Locker",
+                        job = "police",
+                    },
+                },
+                distance = 2
+            })
+        end
+
+    end)
+
+end
+
+if Config.UseTarget then
+    CreateThread(function()
+        -- Personal stash
+        for k, v in pairs(Config.Locations["armory"]) do
+            exports['qb-target']:AddBoxZone("OpenArmoury_"..k, vector3(v.x, v.y, v.z), 1.5, 1.5, {
+                name = "OpenArmoury_"..k,
+                heading = 280,
+                debugPoly = false,
+                minZ = v.z - 1,
+                maxZ = v.z + 1,
+            }, {
+                options = {
+                    {
+                        type = "client",
+                        event = "qb-police:client:openArmoury",
+                        icon = "fas fa-sign-in-alt",
+                        label = "Open Armoury",
+                        job = "police",
+                    },
+                },
+                distance = 2
+            })
+        end
+
+    end)
+end
+
 
 if Config.UseTarget then
     CreateThread(function()
@@ -609,27 +669,27 @@ CreateThread(function()
     end)
 
     -- Personal Stash
-    local stashZones = {}
-    for k, v in pairs(Config.Locations["stash"]) do
-        stashZones[#stashZones+1] = BoxZone:Create(
-            vector3(vector3(v.x, v.y, v.z)), 1.5, 1.5, {
-            name="box_zone",
-            debugPoly = false,
-            minZ = v.z - 1,
-            maxZ = v.z + 1,
-        })
-    end
+    -- local stashZones = {}
+    -- for k, v in pairs(Config.Locations["stash"]) do
+    --     stashZones[#stashZones+1] = BoxZone:Create(
+    --         vector3(vector3(v.x, v.y, v.z)), 1.5, 1.5, {
+    --         name="box_zone",
+    --         debugPoly = false,
+    --         minZ = v.z - 1,
+    --         maxZ = v.z + 1,
+    --     })
+    -- end
 
-    local stashCombo = ComboZone:Create(stashZones, {name = "stashCombo", debugPoly = false})
-    stashCombo:onPlayerInOut(function(isPointInside, point, zone)
-        if isPointInside then
-            inStash = true
-            exports['qb-core']:DrawText(Lang:t('info.stash_enter'), 'left')
-        else
-            exports['qb-core']:HideText()
-            inStash = false
-        end
-    end)
+    -- local stashCombo = ComboZone:Create(stashZones, {name = "stashCombo", debugPoly = false})
+    -- stashCombo:onPlayerInOut(function(isPointInside, point, zone)
+    --     if isPointInside then
+    --         inStash = true
+    --         exports['qb-core']:DrawText(Lang:t('info.stash_enter'), 'left')
+    --     else
+    --         exports['qb-core']:HideText()
+    --         inStash = false
+    --     end
+    -- end)
 
     -- Police Trash
     local trashZones = {}
@@ -682,29 +742,29 @@ CreateThread(function()
     end)
 
     -- Armoury
-    local armouryZones = {}
-    for k, v in pairs(Config.Locations["armory"]) do
-        armouryZones[#armouryZones+1] = BoxZone:Create(
-            vector3(vector3(v.x, v.y, v.z)), 5, 1, {
-            name="box_zone",
-            debugPoly = false,
-            minZ = v.z - 1,
-            maxZ = v.z + 1,
-        })
-    end
+    -- local armouryZones = {}
+    -- for k, v in pairs(Config.Locations["armory"]) do
+    --     armouryZones[#armouryZones+1] = BoxZone:Create(
+    --         vector3(vector3(v.x, v.y, v.z)), 5, 1, {
+    --         name="box_zone",
+    --         debugPoly = false,
+    --         minZ = v.z - 1,
+    --         maxZ = v.z + 1,
+    --     })
+    -- end
 
-    local armouryCombo = ComboZone:Create(armouryZones, {name = "armouryCombo", debugPoly = false})
-    armouryCombo:onPlayerInOut(function(isPointInside)
-        if isPointInside then
-            inAmoury = true
-            if onDuty then
-                exports['qb-core']:DrawText(Lang:t('info.enter_armory'),'left')
-            end
-        else
-            inAmoury = false
-            exports['qb-core']:HideText()
-        end
-    end)
+    -- local armouryCombo = ComboZone:Create(armouryZones, {name = "armouryCombo", debugPoly = false})
+    -- armouryCombo:onPlayerInOut(function(isPointInside)
+    --     if isPointInside then
+    --         inAmoury = true
+    --         if onDuty then
+    --             exports['qb-core']:DrawText(Lang:t('info.enter_armory'),'left')
+    --         end
+    --     else
+    --         inAmoury = false
+    --         exports['qb-core']:HideText()
+    --     end
+    -- end)
 
     -- Helicopter
     local helicopterZones = {}
