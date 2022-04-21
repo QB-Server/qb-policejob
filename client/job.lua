@@ -292,6 +292,14 @@ RegisterNUICallback('closeFingerprint', function()
 end)
 
 --Events
+RegisterNetEvent('qb-policejob:client:OpenTrash', function(data)
+    TriggerServerEvent("inventory:server:OpenInventory", "stash", "policetrash", {
+        maxweight = 4000000,
+        slots = 300,
+    })
+    TriggerEvent("inventory:client:SetCurrentStash", "policetrash")
+end)
+
 RegisterNetEvent('qb-policejob:OpenPlayerStash', function()
     TriggerServerEvent("inventory:server:OpenInventory", "stash", "policestash_"..QBCore.Functions.GetPlayerData().citizenid)
     TriggerEvent("inventory:client:SetCurrentStash", "policestash_"..QBCore.Functions.GetPlayerData().citizenid)
@@ -498,6 +506,34 @@ end)
 if Config.UseTarget then
     CreateThread(function()
         -- Personal stash
+        for k, v in pairs(Config.Locations["trash"]) do
+            exports['qb-target']:AddBoxZone("OpenTrash_"..k, vector3(v.x, v.y, v.z), 1.5, 1.5, {
+                name = "OpenTrash_"..k,
+                heading = 280,
+                debugPoly = false,
+                minZ = v.z - 1,
+                maxZ = v.z + 1,
+            }, {
+                options = {
+                    {
+                        type = "client",
+                        event = "qb-policejob:client:OpenTrash",
+                        icon = "fas fa-sign-in-alt",
+                        label = "Open Trash",
+                        job = "police",
+                    },
+                },
+                distance = 2
+            })
+        end
+
+    end)
+end
+
+
+if Config.UseTarget then
+    CreateThread(function()
+        -- Personal stash
         for k, v in pairs(Config.Locations["stash"]) do
             exports['qb-target']:AddBoxZone("OpenStash_"..k, vector3(v.x, v.y, v.z), 1.5, 1.5, {
                 name = "OpenStash_"..k,
@@ -692,29 +728,29 @@ CreateThread(function()
     -- end)
 
     -- Police Trash
-    local trashZones = {}
-    for k, v in pairs(Config.Locations["trash"]) do
-        trashZones[#trashZones+1] = BoxZone:Create(
-            vector3(vector3(v.x, v.y, v.z)), 1, 1.75, {
-            name="box_zone",
-            debugPoly = false,
-            minZ = v.z - 1,
-            maxZ = v.z + 1,
-        })
-    end
+    -- local trashZones = {}
+    -- for k, v in pairs(Config.Locations["trash"]) do
+    --     trashZones[#trashZones+1] = BoxZone:Create(
+    --         vector3(vector3(v.x, v.y, v.z)), 1, 1.75, {
+    --         name="box_zone",
+    --         debugPoly = false,
+    --         minZ = v.z - 1,
+    --         maxZ = v.z + 1,
+    --     })
+    -- end
 
-    local trashCombo = ComboZone:Create(trashZones, {name = "trashCombo", debugPoly = false})
-    trashCombo:onPlayerInOut(function(isPointInside)
-        if isPointInside then
-            inTrash = true
-            if onDuty then
-                exports['qb-core']:DrawText(Lang:t('info.trash_enter'),'left')
-            end
-        else
-            inTrash = false
-            exports['qb-core']:HideText()
-        end
-    end)
+    -- local trashCombo = ComboZone:Create(trashZones, {name = "trashCombo", debugPoly = false})
+    -- trashCombo:onPlayerInOut(function(isPointInside)
+    --     if isPointInside then
+    --         inTrash = true
+    --         if onDuty then
+    --             exports['qb-core']:DrawText(Lang:t('info.trash_enter'),'left')
+    --         end
+    --     else
+    --         inTrash = false
+    --         exports['qb-core']:HideText()
+    --     end
+    -- end)
 
     -- Fingerprints
     local fingerprintZones = {}
@@ -910,25 +946,25 @@ CreateThread(function ()
 end)
 
 -- Police Trash Thread
-CreateThread(function ()
-    Wait(1000)
-    while true do
-        local sleep = 1000
-        if inTrash and PlayerJob.name == "police" then
-            if onDuty then sleep = 5 end
-            if IsControlJustReleased(0, 38) then
-                TriggerServerEvent("inventory:server:OpenInventory", "stash", "policetrash", {
-                    maxweight = 4000000,
-                    slots = 300,
-                })
-                TriggerEvent("inventory:client:SetCurrentStash", "policetrash")
-            end
-        else
-            sleep = 1000
-        end
-        Wait(sleep)
-    end
-end)
+-- CreateThread(function ()
+--     Wait(1000)
+--     while true do
+--         local sleep = 1000
+--         if inTrash and PlayerJob.name == "police" then
+--             if onDuty then sleep = 5 end
+--             if IsControlJustReleased(0, 38) then
+--                 TriggerServerEvent("inventory:server:OpenInventory", "stash", "policetrash", {
+--                     maxweight = 4000000,
+--                     slots = 300,
+--                 })
+--                 TriggerEvent("inventory:client:SetCurrentStash", "policetrash")
+--             end
+--         else
+--             sleep = 1000
+--         end
+--         Wait(sleep)
+--     end
+-- end)
 
 -- Fingerprint Thread
 CreateThread(function ()
